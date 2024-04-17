@@ -7,7 +7,7 @@ import java.util.LinkedList;
 public abstract class AbstractInput {
     public enum Inputs {LEFT, RIGHT, UP, DOWN, SPACE, ESC};
     private LinkedList<Inputs> KeyInputs;
-    public AbstractInput.Inputs getInput(){
+    public Inputs getInput(){
         return KeyInputs.poll();
     }
     //public Input.Inputs getInput(){

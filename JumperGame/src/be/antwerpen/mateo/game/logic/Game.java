@@ -53,7 +53,7 @@ public class Game {
 
     private AbstractInput getInstanceInput(){
         if (input == null){
-            instanceInput = new factory.createInput(grCtx);
+            instanceInput = factory.createInput(grCtx);
         }
         return instanceInput;
     }
@@ -81,7 +81,7 @@ public class Game {
             // Handl Input
             input = getInstanceInput();
             if (input.inputAvailable()) {
-                AbstractInput direction = input;
+                AbstractInput.Inputs direction = input.getInput();
                 if (direction == AbstractInput.Inputs.ESC)
                     isPaused = ! isPaused;
                 else

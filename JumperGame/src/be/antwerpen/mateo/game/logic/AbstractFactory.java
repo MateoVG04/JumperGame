@@ -5,8 +5,8 @@ import be.antwerpen.mateo.game.context.j2dContext;
 public abstract class AbstractFactory {
     //public abstract AbstractInput createInput();
 
+    //public abstract AbstractInput createInput(j2dContext gr);
     public abstract AbstractInput createInput(j2dContext gr);
-
     public abstract AbstractFactory createStatus();
     public abstract AbstractEntity createEntity(int x, int y, int r, int g, int b);
     //public abstract AbstractHero createHero(MovementComponent movementComponent);

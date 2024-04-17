@@ -12,7 +12,8 @@ public class InputFactory extends AbstractFactory {
     @Override
     public AbstractInput createInput(j2dContext gr) {
         Input input = new Input(gr);
-        return null;
+        //return null;
+        return input;
     }
 
     @Override

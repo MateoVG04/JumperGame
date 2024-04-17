@@ -8,7 +8,7 @@ import java.awt.event.KeyEvent;
 import java.util.LinkedList;
 
 public class Input extends AbstractInput {
-    public enum Inputs {LEFT, RIGHT, UP, DOWN, SPACE,ESC};
+    //public enum Inputs {LEFT, RIGHT, UP, DOWN, SPACE,ESC};
     private LinkedList<Inputs> keyInputs;
 
     public Input(j2dContext gr) {

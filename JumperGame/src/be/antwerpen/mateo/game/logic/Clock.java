@@ -1,4 +1,5 @@
 package be.antwerpen.mateo.game.logic;
+
 public class Clock {
     private int clock;
     private int FPS=0;
@@ -6,6 +7,7 @@ public class Clock {
 
     public Clock(){
         start = 0;
+
     }
 
     public long calculateDeltaT(boolean start){
@@ -19,6 +21,7 @@ public class Clock {
             long deltaT = stopTime - this.start;
             this.start =0;
             return deltaT;
+
         }
     }
 }

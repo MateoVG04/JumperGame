@@ -8,4 +8,6 @@ public abstract class AbstractHero extends AbstractEntity {
         this.movementComponent = movementComponent;
         this.movementSystem = movementSystem;
     }
+
+    abstract public void draw();
 }

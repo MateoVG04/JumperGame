@@ -1,6 +1,5 @@
 package be.antwerpen.mateo.game.visualisation;
 
-import be.antwerpen.mateo.game.context.j2dContext;
 import be.antwerpen.mateo.game.logic.AbstractEntity;
 
 import java.awt.*;

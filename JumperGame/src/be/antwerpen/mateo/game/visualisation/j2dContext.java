@@ -1,11 +1,14 @@
-package be.antwerpen.mateo.game.context;
+package be.antwerpen.mateo.game.visualisation;
+
+import be.antwerpen.mateo.game.logic.AbstractContext;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-public class j2dContext {
+public class j2dContext extends AbstractContext {
     private int ScreenWidth;
     private int ScreenHeight;
+    private String name;
     private JFrame frame;
     private JPanel panel;
     private BufferedImage g2dimage;     // used for drawing
@@ -20,8 +23,19 @@ public class j2dContext {
         return frame;
     }
 
+    public int getScreenWidth(){
+        return ScreenWidth;
+    }
+    public int getScreenHeight(){
+        return ScreenHeight;
+    }
+
     public int getSize() {
         return size;
+    }
+    public void setWindowTitle(String title){
+        this.name = title;
+        this.frame.setTitle(title);
     }
 
     public j2dContext() {
@@ -43,6 +57,7 @@ public class j2dContext {
         frame.setResizable(true);
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
+        setGameDimensions(20,20);
     }
 
     public void render() {
@@ -54,8 +69,8 @@ public class j2dContext {
         Toolkit.getDefaultToolkit().sync();
         graph2d.drawImage(g2dimage, 0, 0, null);   // copy buffered image
         graph2d.dispose();
-        if (g2d != null)
-            g2d.clearRect(0, 0, frame.getWidth(), frame.getHeight());
+        //if (g2d != null)
+        //    g2d.clearRect(0, 0, frame.getWidth(), frame.getHeight());
     }
 
     public void setGameDimensions(int GameCellsX, int GameCellsY) {
@@ -65,7 +80,9 @@ public class j2dContext {
         g2dimage = new BufferedImage(frame.getWidth(), frame.getHeight(), BufferedImage.TYPE_4BYTE_ABGR_PRE);
         g2d = g2dimage.createGraphics();
         g2d.setBackground(new Color(255, 255, 255));
-        g2d.clearRect(0, 0, frame.getWidth(), frame.getHeight());
+        //g2d.clearRect(0, 0, frame.getWidth(), frame.getHeight());
+        if (g2d != null)
+            g2d.clearRect(0, 0, frame.getWidth(), frame.getHeight());
     }
 }
 

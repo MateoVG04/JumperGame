@@ -1,5 +1,7 @@
 package be.antwerpen.mateo.game.visualisation;
 
-public interface menuInterfaceStrat {
+import be.antwerpen.mateo.game.logic.AbstractInterfaceMenuStrat;
+
+public interface menuInterfaceStrat extends AbstractInterfaceMenuStrat {
     void execute();
 }

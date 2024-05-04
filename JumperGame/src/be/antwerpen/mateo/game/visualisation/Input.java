@@ -1,6 +1,7 @@
-package be.antwerpen.mateo.game.input;
+package be.antwerpen.mateo.game.visualisation;
 
-import be.antwerpen.mateo.game.context.j2dContext;
+import be.antwerpen.mateo.game.logic.AbstractContext;
+import be.antwerpen.mateo.game.visualisation.j2dContext;
 import be.antwerpen.mateo.game.logic.AbstractInput;
 
 import java.awt.event.KeyAdapter;
@@ -11,15 +12,41 @@ public class Input extends AbstractInput {
     //public enum Inputs {LEFT, RIGHT, UP, DOWN, SPACE,ESC};
     private LinkedList<Inputs> keyInputs;
 
-    public Input(j2dContext gr) {
-        gr.getFrame().addKeyListener(new KeyInputAdapter());
+    public Input() {
         keyInputs = new LinkedList<Inputs>();
     }
-    public boolean inputAvailable() {
-        return keyInputs.size() > 0;
+
+    public void setContext(j2dContext gr){
+        gr.getFrame().addKeyListener(new KeyInputAdapter());
     }
+    public boolean inputAvailable() {
+        if (keyInputs.size()>0) {
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+
+    @Override
+    public void setContext(AbstractContext gr) {
+        if (gr instanceof j2dContext){
+            j2dContext j2d = (j2dContext) gr;
+            j2d.getFrame().addKeyListener(new KeyInputAdapter());
+        }
+        else{
+            //throw new IllegalArgumentException("visualisation/Input/line39 not an instance of j2dContext");
+            System.out.println("Error: visualisation/Input/line39 not an instance of j2dContext");
+        }
+    }
+
     public Inputs getInput() {
         return keyInputs.poll();
+    }
+
+    @Override
+    public void InputListener() {
+
     }
 
     class KeyInputAdapter extends KeyAdapter {

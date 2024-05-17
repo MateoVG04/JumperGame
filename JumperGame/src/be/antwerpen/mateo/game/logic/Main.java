@@ -8,9 +8,9 @@ import be.antwerpen.mateo.game.visualisation.*;
 public class Main {
     public static void main(String[] args) {
         AbstractFactory factory = new j2dFactory();
-        //j2dContext gr = new j2dContext();
+        AbstractContext gr = factory.createContext(25,50);
         //AbstractInput input = new Input();
-        Game game = new Game(factory,factory.createInput());
+        Game game = new Game(factory,factory.createInput(gr),gr);
         game.run();
     }
 }

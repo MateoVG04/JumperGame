@@ -2,18 +2,28 @@ package be.antwerpen.mateo.game.visualisation;
 
 import be.antwerpen.mateo.game.logic.AbstractContext;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+
 public class j2dContext extends AbstractContext {
-    private int ScreenWidth;
-    private int ScreenHeight;
+    public int ScreenWidth;
+    public int ScreenHeight;
     private String name;
     private JFrame frame;
     private JPanel panel;
     private BufferedImage g2dimage;     // used for drawing
     private Graphics2D g2d;             // always draw in this one
+    private JPanelBackground backgroundImage;
     private int size;                   // cel size
+    public BufferedImage backgroundImg;
+    public BufferedImage heroSprite;
+    private int heroWidth;
+    private int heroHeight;
+
 
     public Graphics2D getG2d() {
         return g2d;
@@ -38,10 +48,16 @@ public class j2dContext extends AbstractContext {
         this.frame.setTitle(title);
     }
 
-    public j2dContext() {
-        ScreenWidth = 500;
-        ScreenHeight = 520;
+    public j2dContext(int heroWidth, int heroHeight) {
+        Toolkit toolkit = Toolkit.getDefaultToolkit();
+        Dimension screenSize = toolkit.getScreenSize();
+        ScreenWidth = screenSize.width;
+        ScreenHeight = screenSize.height;
+        this.heroWidth = heroWidth;
+        this.heroHeight = heroHeight;
         frame = new JFrame();
+        setGameDimensions(20,20);
+
         panel = new JPanel(true) {
             @Override
             public void paintComponent(Graphics g) {
@@ -57,32 +73,79 @@ public class j2dContext extends AbstractContext {
         frame.setResizable(true);
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
-        setGameDimensions(20,20);
     }
 
     public void render() {
         panel.repaint();
     }
 
+    public BufferedImage resizeImage(String entity,BufferedImage originalImage, int targetWidth, int targetHeight){
+        Image resultingImage = null;
+        if (entity == "hero"){
+            resultingImage = originalImage.getScaledInstance(targetWidth, targetHeight, Image.SCALE_DEFAULT); // + 300, +100
+        }
+        else if (entity == "background") {
+            resultingImage = originalImage.getScaledInstance(targetWidth + 300, targetHeight + 100, Image.SCALE_DEFAULT); // + 300, +100
+        }
+        BufferedImage outputImage = new BufferedImage(targetWidth, targetHeight, BufferedImage.TYPE_4BYTE_ABGR_PRE);
+        if (entity == "hero"){
+            outputImage.getGraphics().drawImage(resultingImage, 0, 0, null); // -100, -100
+        }
+        else if (entity == "background") {
+            outputImage.getGraphics().drawImage(resultingImage, -100, -100, null); // -100, -100
+        }
+        return outputImage;
+    }
+
+    private void loadImages() {
+        backgroundImg = null;
+        try {
+
+            // Voor goeie images te maken gebruik Chat GPT
+            // Voor de achtergrond van de image te verwijderen, gebruik https://www.remove.bg/upload
+
+            backgroundImg = ImageIO.read(new File("JumperGame/src/be/antwerpen/mateo/game/resources/BackgrndGalaxy.png"));
+            //C:\Users\Mateo\Geavanceerde programmeertechnieken\Project - chose name later\JumperGame\src\be\antwerpen\mateo\game\resources\backgroundGalaxy.jpg
+              //      src/be/antwerpen/mateo/game/resources/backgroundGalaxy.jpg
+            heroSprite = ImageIO.read(new File("JumperGame/src/be/antwerpen/mateo/game/resources/Hero_Astronaut3.png"));
+
+            //heroSprite = ImageIO.read(new File("JumperGame/src/be/antwerpen/mateo/game/resources/Hero_Astronaut_transparent.png"));
+        } catch (IOException e) {
+            System.out.println("Unable to load snake.png or snake-graphics.png!");
+        }
+    }
+
     private void doDrawing(Graphics g) {
         Graphics2D graph2d = (Graphics2D) g;
         Toolkit.getDefaultToolkit().sync();
         graph2d.drawImage(g2dimage, 0, 0, null);   // copy buffered image
+        if (g2d != null){
+            g2d.drawImage(backgroundImg,0,0,null);
+        }
         graph2d.dispose();
         //if (g2d != null)
-        //    g2d.clearRect(0, 0, frame.getWidth(), frame.getHeight());
+            //g2d.clearRect(0, 0, frame.getWidth(), frame.getHeight());
+            //g2d.clearRect(0,0,frame.getWidth(),frame.getHeight());
     }
 
     public void setGameDimensions(int GameCellsX, int GameCellsY) {
         size = Math.min(ScreenWidth / GameCellsX, ScreenHeight / GameCellsY);
-        frame.setLocation(50, 50);
+        frame.setLocation(0, 0);
         frame.setSize(ScreenWidth, ScreenHeight);
+        loadImages();
+        try{
+            backgroundImg = resizeImage("background",backgroundImg, frame.getWidth(),frame.getHeight());
+            heroSprite = resizeImage("hero",heroSprite, (int)Math.round((heroWidth/1000.0)*ScreenWidth), (int)Math.round((heroHeight/1000.0)*ScreenHeight));
+        } catch (Exception e) {
+            System.out.println(e.getStackTrace());
+        }
         g2dimage = new BufferedImage(frame.getWidth(), frame.getHeight(), BufferedImage.TYPE_4BYTE_ABGR_PRE);
         g2d = g2dimage.createGraphics();
-        g2d.setBackground(new Color(255, 255, 255));
+        //g2d.setBackground(new Color(255, 255, 255));
+        g2d.drawImage(backgroundImg,-100,-100,null);
         //g2d.clearRect(0, 0, frame.getWidth(), frame.getHeight());
-        if (g2d != null)
-            g2d.clearRect(0, 0, frame.getWidth(), frame.getHeight());
+//        if (g2d != null)
+//            g2d.clearRect(0, 0, frame.getWidth(), frame.getHeight());
     }
 }
 

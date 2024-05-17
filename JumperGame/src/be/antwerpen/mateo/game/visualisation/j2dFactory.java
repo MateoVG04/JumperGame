@@ -10,8 +10,8 @@ public class j2dFactory extends AbstractFactory {
 //        return input;
 //    }
     @Override
-    public AbstractInput createInput() {
-        Input input = new Input();
+    public AbstractInput createInput(AbstractContext gr) {
+        Input input = new Input((j2dContext) gr);
         return input;
     }
 
@@ -30,15 +30,21 @@ public class j2dFactory extends AbstractFactory {
 //    }
 
     @Override
-    public AbstractEntity createEntity(int x, int y, int r, int g, int b) {
-        j2dEntity entity = new j2dEntity();
+    public AbstractEntity createEntity(MovementComponent movementComponent, MovementSystem movementSystem, AbstractContext gr) {
+        j2dEntity entity = new j2dEntity(movementComponent, movementSystem, (j2dContext) gr);
         return entity;
     }
 
     @Override
-    public AbstractHero createHero(MovementComponent movementComponent,MovementSystem movementSystem, AbstractContext gr) {
-        j2dHero hero = new j2dHero(movementComponent, movementSystem,(j2dContext) gr);
+    public AbstractHero createHero(MovementComponent movementComponent,MovementSystem movementSystem, AbstractContext gr, int width, int height) {
+        j2dHero hero = new j2dHero(movementComponent, movementSystem,(j2dContext) gr, width, height);
         return (AbstractHero) hero;
+    }
+
+    @Override
+    public AbstractStaticPlatform createStaticPlatform(MovementComponent movementComponent, MovementSystem movementSystem, AbstractContext gr, int width, int height){
+        j2dStaticPlatform staticPlatform = new j2dStaticPlatform(movementComponent, movementSystem, (j2dContext) gr, width, height);
+        return (AbstractStaticPlatform) staticPlatform;
     }
 
 //    @Override
@@ -47,8 +53,8 @@ public class j2dFactory extends AbstractFactory {
 //    }
 
     @Override
-    public AbstractContext createContext() {
-        j2dContext window = new j2dContext();
+    public AbstractContext createContext(int heroWidth, int heroHeight) {
+        j2dContext window = new j2dContext(heroWidth,heroHeight);
         return window;
     }
 
@@ -58,6 +64,9 @@ public class j2dFactory extends AbstractFactory {
         menuContext context = new menuContext();
         if (Strat == "Menu"){
             menu = context.setStrategy(new Menu((j2dContext) gr));
+        }
+        else if(Strat == "backgroundMenu"){
+            menu = context.setStrategy(new backgroundMenu((j2dContext) gr));
         }
         else{
             menu = null;

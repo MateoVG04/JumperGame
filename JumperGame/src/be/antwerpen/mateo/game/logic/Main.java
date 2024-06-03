@@ -1,6 +1,5 @@
 package be.antwerpen.mateo.game.logic;
 
-import be.antwerpen.mateo.game.visualisation.Input;
 import be.antwerpen.mateo.game.visualisation.*;
 
 // git commit -a -m "title" -m "description"

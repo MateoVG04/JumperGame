@@ -74,6 +74,13 @@ public class j2dFactory extends AbstractFactory {
         //context.executeMenu();
         return menu;
     }
+    @Override
+    public AbstractHealthScrore createHealthScore(int health, int score, AbstractContext gr){
+        j2dHealthScore healthScore = new j2dHealthScore(health,score,(j2dContext) gr);
+        //j2dHealthScore healthScore = new j2dHealthScore((j2dContext) gr);
+
+        return (AbstractHealthScrore) healthScore;
+    }
 
 //    @Override
 //    public j2dContext createContext() {

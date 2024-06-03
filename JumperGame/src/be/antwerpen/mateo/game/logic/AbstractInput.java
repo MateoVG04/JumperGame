@@ -1,7 +1,6 @@
 package be.antwerpen.mateo.game.logic;
 
 import java.util.LinkedList;
-import be.antwerpen.mateo.game.logic.Inputs;
 
 public abstract class AbstractInput {
     //public enum Inputs {LEFT, RIGHT, UP, DOWN, SPACE, ESC};

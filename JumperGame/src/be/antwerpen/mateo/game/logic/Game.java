@@ -1,5 +1,4 @@
 package be.antwerpen.mateo.game.logic;
-import be.antwerpen.mateo.game.logic.Inputs;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,10 +31,12 @@ public class Game {
     private static AbstractInterfaceMenuStrat instanceMenu;
     private static AbstractInterfaceMenuStrat instanceBackgroundMenu;
     private static AbstractContext instanceContext;
+    private static AbstractHealthScrore instanceHealthScore;
     private int heroWidth = 30;
     private int heroHeight = 75;
     private int platformWidth =50;
     private int platformHeight =15;
+    private boolean enterPressed = false;
 
 
     public Game(AbstractFactory f,AbstractInput i,AbstractContext gr){
@@ -83,6 +84,12 @@ public class Game {
         }
         return instanceHero;
     }
+    private static AbstractHealthScrore getInstanceHealthScore(int health, int score, AbstractContext gr){
+        if (instanceHealthScore == null){
+            instanceHealthScore = factory.createHealthScore(health,score,gr);
+        }
+        return instanceHealthScore;
+    }
     private static AbstractStaticPlatform getInstanceStaticPlatform(MovementComponent movementComponent, MovementSystem movementSystem, AbstractContext gr, int width, int height){
         if (instanceStaticPlatform == null){
             instanceStaticPlatform = factory.createStaticPlatform(movementComponent,movementSystem,gr,width,height);
@@ -102,9 +109,9 @@ public class Game {
         instanceMenu.execute();
     }
 
-    private static AbstractContext getInstanceContext(int heroWidth,int heroHeight){
-        if (instanceContext == null){
-            instanceContext = factory.createContext(heroWidth,heroHeight);
+    private static AbstractContext getInstanceContext(int heroWidth,int heroHeight) {
+        if (instanceContext == null) {
+            instanceContext = factory.createContext(heroWidth, heroHeight);
         }
         return instanceContext;
     }
@@ -113,15 +120,18 @@ public class Game {
         this.grCtx = getInstanceContext(this.heroWidth,this.heroHeight);
         isRunning = true;
         isPaused = false;
-        inStartMenu = false;
-        inGame = true;
+        inStartMenu = true;
+        inGame = false;
 //        int vorigAantalFrames = 0;
 //        int huidigAantalFrames = 0;
 //        long startStopwatch=0;
         boolean nogTiming = true;
+        instanceHealthScore = getInstanceHealthScore(3,0,getInstanceContext(heroWidth,heroHeight));
 
         while (isRunning){
             clock.calculateDeltaT(true);
+
+
 //            if (nogTiming) {
 //                startStopwatch = clockMovementSystem.calculateDeltaT(true);
 //                nogTiming = false;
@@ -143,43 +153,59 @@ public class Game {
                 System.out.println(direction);
                 if (direction == Inputs.ESC)
                     isPaused = ! isPaused;
+                else if (direction == Inputs.ENTER){
+                    enterPressed = true;
+                }
+
                 else
-                    hero.movementSystem.setDirection(direction);
+                    if (inGame) {
+                        hero.movementSystem.setDirection(direction);
+                    }
             }
 //            if (!input.inputAvailable() && (movementSystem != null)){
 //                movementSystem.setDirection(Inputs.NOInput);
 //            }
             if (!isPaused) {
                 //grCtx.setBackground();
-                movementComponent = getInstanceMove(this.heroWidth,this.heroHeight);
-                movementSystem = getInstanceMoveSystem();
-                hero = getInstanceHero(movementComponent,movementSystem,getInstanceContext(this.heroWidth,this.heroHeight),heroWidth,heroHeight);
-                staticPlatform = getInstanceStaticPlatform(movementComponent, movementSystem,getInstanceContext(this.heroWidth, this.heroHeight),this.platformWidth,this.platformHeight);
-                List<MovementComponent> movementComponentList = new ArrayList<>();
-                movementComponentList.add(hero.movementComponent);
-                movementComponentList.add(staticPlatform.getMovementComponent());
 
-                // moet geen boolean meer returnen want ik gebruik dit niet meer in een if/else statement
-                this.newPlatformsNeeded = this.movementSystem.update(movementComponentList,this.deltaT, this.clock, staticPlatform);
-                // zet vx terug op 0, omdat als je een key hebt los gelaten dan moet je hero stoppen met opzij te bewegen
-                this.movementSystem.setVX(0);
+                if (inStartMenu){
+                    strat = "Menu";
+                    getInstanceMenu(strat,getInstanceContext(this.heroWidth,this.heroHeight));
+                    //grCtx.setBackground("StartMenu");
+                    if (enterPressed){
+                        inStartMenu = false;
+                        inGame = true;
+                    }
+                    //inStartMenu = false;
+                }
+                else if(inGame){
+                    movementComponent = getInstanceMove(this.heroWidth,this.heroHeight);
+                    movementSystem = getInstanceMoveSystem();
+                    hero = getInstanceHero(movementComponent,movementSystem,getInstanceContext(this.heroWidth,this.heroHeight),heroWidth,heroHeight);
+                    staticPlatform = getInstanceStaticPlatform(movementComponent, movementSystem,getInstanceContext(this.heroWidth, this.heroHeight),this.platformWidth,this.platformHeight);
+                    List<MovementComponent> movementComponentList = new ArrayList<>();
+                    movementComponentList.add(hero.movementComponent);
+                    movementComponentList.add(staticPlatform.getMovementComponent());
+
+                    // moet geen boolean meer returnen want ik gebruik dit niet meer in een if/else statement
+                    // In de update worden alle collisions gecheckt.
+                    this.newPlatformsNeeded = this.movementSystem.update(movementComponentList,this.deltaT, this.clock, staticPlatform, instanceHealthScore);
+                    // zet vx terug op 0, omdat als je een key hebt los gelaten dan moet je hero stoppen met opzij te bewegen
+                    this.movementSystem.setVX(0);
 //                if (this.newPlatformsNeeded){
 //                    //staticPlatform.generatePlatformLocations();
 //                    //staticPlatform.getMovementComponent().cordList = staticPlatform.generatePlatformLocations();
 //                    System.out.println("wat is dit?"+staticPlatform.generatePlatformLocations());
 //                }
-                //this.movementSystem.setVY(0);
+                    //this.movementSystem.setVY(0);
 
-                //grCtx.setGameDimensions(this.GameCellsX,this.GameCellsY);
-                //grCtx.setWindowTitle("Jumping");
-                if (inStartMenu){
-                    strat = "Menu";
-                    getInstanceMenu(strat,getInstanceContext(this.heroWidth,this.heroHeight));
-                    //inStartMenu = false;
-                }
-                else if(inGame){
+                    //grCtx.setGameDimensions(this.GameCellsX,this.GameCellsY);
+                    //grCtx.setWindowTitle("Jumping");
+
                     staticPlatform.draw();
                     hero.draw();
+                    instanceHealthScore.draw();
+
                 }
                 else {
                     hero.draw();

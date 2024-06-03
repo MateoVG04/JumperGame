@@ -112,6 +112,7 @@ abstract public class AbstractStaticPlatform extends AbstractEntity{
         Toolkit toolkit = Toolkit.getDefaultToolkit();
         Dimension screenSize = toolkit.getScreenSize();
         int ScreenHeight = screenSize.height;
+        int ScreenWidth = screenSize.width;
         //System.out.println("(AbstPlatform) Screen height: "+ ScreenHeight);
         List<List<CoordinatePoint>> children = new ArrayList<>();
         Random random = new Random();
@@ -166,7 +167,17 @@ abstract public class AbstractStaticPlatform extends AbstractEntity{
                 int crashDetect = 0;
                 while (platformsGenerated < numPlatforms) {
                     //if (isFirstSet) {
-                        randx = random.nextInt(children.get(i).get(j).x - (2 * width), children.get(i).get(j).x + (2 * width));
+                        randx = 0;
+                        int infinite = 0; // gaat kijken of er een infinite loop is en als dat is ga je een platform in het midden genereren
+                        while ((randx <= (int) ((1 / 5.0) * 1000) + 10) || ((randx >= (int) ((4 / 5.0) * 1000) - width - 10))) {
+                            randx = random.nextInt(children.get(i).get(j).x - (2 * width), children.get(i).get(j).x + (2 * width));
+                            System.out.println("infite loop?");
+                            infinite++;
+                            if (infinite >= 100){
+                                randx = 500-((int)(width/2.0));
+                            }
+
+                        }
                         randy = random.nextInt(children.get(i).get(j).y - 150, children.get(i).get(j).y - 50);
                         if ((randx <= (int) ((1 / 5.0) * 1000) + 10) || (randx >= (int) ((4 / 5.0) * 1000) - width - 10)){
                             collision = true;

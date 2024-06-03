@@ -12,7 +12,8 @@ public class Menu implements menuInterfaceStrat {
         if(g2d != null){
             int size = grCtx.getSize();
             grCtx.getG2d().setColor(new Color(100,100,230));
-            grCtx.getG2d().fillRect((int)Math.floor(grCtx.getScreenWidth()*(1/5.0)),0,(int)Math.floor(grCtx.getScreenWidth()*(3/5.0)),grCtx.getScreenHeight());
+            //grCtx.getG2d().fillRect((int)Math.floor(grCtx.getScreenWidth()*(1/5.0)),0,(int)Math.floor(grCtx.getScreenWidth()*(3/5.0)),grCtx.getScreenHeight());
+            grCtx.getG2d().fillRect(0,0,grCtx.getScreenWidth(),grCtx.getScreenHeight());
             grCtx.getG2d().setColor(new Color(100,230,100));
             g2d.fillRect((int)Math.floor(grCtx.getScreenWidth()*(1/5.0))+size*2,size*2,(int)Math.floor(grCtx.getScreenWidth()*(3/5.0))-(size*4),size*2);
             g2d.fillRect((int)Math.floor(grCtx.getScreenWidth()*(1/5.0))+size*2,size*6,(int)Math.floor(grCtx.getScreenWidth()*(3/5.0))-(size*4),size*2);

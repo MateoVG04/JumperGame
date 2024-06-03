@@ -91,6 +91,8 @@ public class Input extends AbstractInput {
                 case KeyEvent.VK_ESCAPE:
                     keyInputs.add(Inputs.ESC);
                     break;
+                case KeyEvent.VK_ENTER:
+                    keyInputs.add(Inputs.ENTER);
                 default:
                     keyInputs.add(Inputs.NOInput);
             }

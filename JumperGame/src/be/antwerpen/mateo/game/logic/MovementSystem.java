@@ -25,7 +25,7 @@ public class MovementSystem {
 //            heroMove.y += heroMove.vy * (deltaT/10.0);
 //    }
 
-    public boolean update(List<MovementComponent> movementComponentList,long deltaT ,Clock clock, AbstractStaticPlatform platform){
+    public boolean update(List<MovementComponent> movementComponentList,long deltaT ,Clock clock, AbstractStaticPlatform platform, AbstractHealthScrore healthScore){
         Toolkit toolkit = Toolkit.getDefaultToolkit();
         Dimension screenSize = toolkit.getScreenSize();
         int ScreenHeight = screenSize.height;
@@ -49,7 +49,7 @@ public class MovementSystem {
                                   // dat het onmogelijk is om nog te vallen. Dus met deze demper zorg ik ervoor dat
                                   // enkel om de zo veel tijd een platform gegenereert wordt.
         if (heroMove.y <= (float)((8/14.0)*ScreenHeight)){
-            updatePlatformPosition(movementComponentList,ScreenHeight,platform);
+            updatePlatformPosition(movementComponentList,ScreenHeight,platform,healthScore);
         }
 
 
@@ -91,6 +91,12 @@ public class MovementSystem {
         heroJumpFysics(this.time);
         this.addCords.clear();
         firstJump = false;
+        if (movementComponentList.get(0).x < (int) ((1 / 5.0) * 1000)){ // van links naar rechts teleporten
+            movementComponentList.get(0).x = (int) ((4 / 5.0) * 1000) - 10;
+        }
+        if (movementComponentList.get(0).x > (int) ((4 / 5.0) * 1000)-10){ // van rechts naar links teleporten
+            movementComponentList.get(0).x = (int) ((1 / 5.0) * 1000) + 10;
+        }
         return this.newPlatforms;
     }
 
@@ -135,7 +141,7 @@ public class MovementSystem {
         }
     }
 
-    private void updatePlatformPosition(List<MovementComponent> movementComponentList, int ScreenHeight, AbstractStaticPlatform platform) {
+    private void updatePlatformPosition(List<MovementComponent> movementComponentList, int ScreenHeight, AbstractStaticPlatform platform, AbstractHealthScrore healthScrore) {
         int generatorDemper = 75;
         MovementComponent heroMove = movementComponentList.get(0);
         for (int i = 0; i< movementComponentList.get(1).cordList.size(); i++) {
@@ -170,8 +176,10 @@ public class MovementSystem {
         }
         if (heroMove.y <= (float) ((5 / 14.0) * ScreenHeight)) {
             heroMove.y += 5;
+            healthScrore.addScore(10);
         }
         heroMove.y += 5;
+        healthScrore.addScore(10);
     }
 
     private void addNewPlatforms(List<List<CoordinatePoint>> cordList) {

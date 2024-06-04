@@ -1,86 +1,63 @@
 package be.antwerpen.mateo.game.logic;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class MovementSystem {
     private float dx = 0;
     private float dy = 0;
-    private int hoogte =3000;
-    private int a =0;
+    private int dx_bewegen = Config.getIntProperty("DX_BEWEGEN");
+    private int hoogte = Config.getIntProperty("JUMP_HOOGTE");
+    private int a =0; // de uitrekkingsfactor bij de parabolische jump
     private float time = 0;
-    private long timeJump = 1; // 1000 ms => 1s
+    private long timeJump = Config.getIntProperty("JUMP_TIME"); // 1000 ms => 1s
     private List<CoordinatePoint> platformRemove = new ArrayList<>();
     private List<List<CoordinatePoint>> addCords = new ArrayList<>();
     private int fysicsFormula;
     private int counter=0;
-    private boolean newPlatforms=false;
+    private boolean heroDied=false;
     private boolean firstJump = true;
-//    public void update(AbstractHero hero, float deltaT){
-//            MovementComponent heroMove = hero.movementComponent;
-//            heroMove.vx = dx;
-//            heroMove.vy = dy;
-//            heroMove.x += heroMove.vx * deltaT;
-//            heroMove.y += heroMove.vy * (deltaT/10.0);
-//    }
+    private int ScreenWidth;
+    private int ScreenHeight;
+    private int scoreAdd = Config.getIntProperty("SCORE_ADD");
+    private int aantalLevens = Config.getIntProperty("AANTAL_LEVENS");
 
-    public boolean update(List<MovementComponent> movementComponentList,long deltaT ,Clock clock, AbstractStaticPlatform platform, AbstractHealthScrore healthScore){
-        Toolkit toolkit = Toolkit.getDefaultToolkit();
-        Dimension screenSize = toolkit.getScreenSize();
-        int ScreenHeight = screenSize.height;
-        this.newPlatforms = false;
+    public boolean update(List<MovementComponent> movementComponentList,long deltaT ,Clock clock, AbstractStaticPlatform platform, AbstractHealthScrore healthScore, int ScreenWidth, int ScreenHeight){
+        this.ScreenWidth = ScreenWidth;
+        this.ScreenHeight = ScreenHeight;
         removePlatformUnderScreen(movementComponentList.get(1).cordList,ScreenHeight);
-//        System.out.println(movementComponentList.get(1).cordList.size());
 
-//        System.out.println("(MS) size cordlist: "+movementComponentList.get(1).cordList.size());
         float timeOfFrame = Math.max(((float)(1/clock.getFPS())),(float)(deltaT/1000.0));
         MovementComponent heroMove = movementComponentList.get(0);
         heroMove.vx = dx;
         heroMove.vy = dy;
         heroMove.x += heroMove.vx * timeOfFrame;
         heroMove.y += heroMove.vy * timeOfFrame;
-        //System.out.println(heroMove.y);
+        if (this.heroDied){
+            heroMove.x = 450;
+            heroMove.y = 100;
+            this.heroDied = false;
+        }
 
-        // GOED VOOR TE DEBUGGEN
-//        System.out.println("(MoveSys) heroX: "+heroMove.x+", heroY: "+heroMove.y+", heroVX: "+heroMove.vx+", heroVY: "+heroMove.vy+", timeOfFrame: "+timeOfFrame+", timeJump: "+this.time);
-        int generatorDemper = 75; // als de platformen naar beneden gaan en er nieuw platformen net boven het scherm gegenereert
-                                  // moeten worden heb ik het probleem dat er zo veel platformen gegenereert worden
-                                  // dat het onmogelijk is om nog te vallen. Dus met deze demper zorg ik ervoor dat
-                                  // enkel om de zo veel tijd een platform gegenereert wordt.
-        if (heroMove.y <= (float)((8/14.0)*ScreenHeight)){
+        // als de hero boven een bepaald punt van het scherm komt, moeten alle platformen en de hero zelf ook naar
+        // beneden verschoven worden
+        if (heroMove.y <= (float)((8/14.0)*1000)){
             updatePlatformPosition(movementComponentList,ScreenHeight,platform,healthScore);
         }
 
-
         // check voor elk platform of de hero hier op staat en dus moet gaan jumpen
+        // De hero moet zijn toppunt (timeJump/2.0) van de parabool bereikt hebben anders mag er nog geen
+        // nieuwe jump komen.
         for (int i = 0; i<movementComponentList.get(1).cordList.size(); i++) {
             for (CoordinatePoint cordPlatform : movementComponentList.get(1).cordList.get(i)) {
-                //cordPlatform.printCord();
-//            if (heroMove.y <= (float)((8/14.0)*ScreenHeight)){
-//                cordPlatform.y += 5;
-//                this.newPlatforms = true;
-//                counter++;
-//                if (counter >= 75) {
-//                    this.addCords = platform.generatePlatformLocations(false);
-//                    counter = 0;
-//                }
-//            }
                 if (heroMove.x < cordPlatform.x + cordPlatform.getWidth() &&
-                        heroMove.x + heroMove.width > cordPlatform.x &&
-                        heroMove.y + heroMove.height >= cordPlatform.y - 7 &&
-                        heroMove.y + heroMove.height <= cordPlatform.y + cordPlatform.getHeight() + 1 &&
-                        this.time >= ((float) timeJump) / 2.0) {
-//            int offset = 10;
-//            if ((heroMove.x + heroMove.width - offset >= cordPlatform.x)&&
-//                    (heroMove.y <= cordPlatform.y +18 &&
-//                    (heroMove.x + offset <= cordPlatform.x + cordPlatform.getWidth() &&
-//                    heroMove.y -10 >= cordPlatform.y))){
-                    //Math.round(heroMove.y) + heroMove.height == cordPlatform.y){
+                    heroMove.x + heroMove.width > cordPlatform.x &&
+                    heroMove.y + heroMove.height >= cordPlatform.y - 7 &&
+                    heroMove.y + heroMove.height <= cordPlatform.y + cordPlatform.getHeight() + 1 &&
+                    this.time >= ((float) timeJump) / 2.0) {
                     this.dy = 0;
                     heroJumpFysics(0);
                     this.time = 0;
-                    //System.out.println("(MoveSys) new jump");
                 }
             }
         }
@@ -97,32 +74,37 @@ public class MovementSystem {
         if (movementComponentList.get(0).x > (int) ((4 / 5.0) * 1000)-10){ // van rechts naar links teleporten
             movementComponentList.get(0).x = (int) ((1 / 5.0) * 1000) + 10;
         }
-        return this.newPlatforms;
+        // als de hero van het scherm gaat/valt, moet je hero dood gaan.
+        if ((movementComponentList.get(0).y >= 1000) || (healthScore.getHealth() <= 0)){
+            heroDied = true;
+        }
+        return this.heroDied;
     }
 
     private void removePlatformUnderScreen(List<List<CoordinatePoint>> cordList, int ScreenHeight){
-//        for (int i = 0; i<cordList.size(); i++) {
-//            for (CoordinatePoint cordPlatform : cordList.get(i)) {
-//                if (cordPlatform.y > ScreenHeight) {
-//                    this.platformRemove.add(cordPlatform);
-//                    //System.out.println();
-//                    //cordPlatform.printCord();
-//                    //System.out.println("(MS) platform removed");
-//                }
-//            }
-//        }
-        //System.out.println("(MS) removePlatformUnderScreen()");
-        if (cordList.get(0).get(0).y > 2*ScreenHeight){
-            System.out.println("(MS) lowest branches deleted");
-            System.out.println(cordList.get(0).size());
-            cordList.remove(0);
+        // door mijn structuur met de tree, is het veel efficienter om coordinaten onder het scherm te verwijderen
+        // nu worden enkel de eerste lagen gecheckt in plaats dat je over alle platformen moet ittereren.
+        boolean underScreen = true;
+        int index = 0;
+        // de eerste lagen in de tree (lijst in lijst) zijn de onderste platformen die het eerste onder het scherm komen
+        while (underScreen == true) {
+            int index2 = 0;
+            while (cordList.get(index).size() > index2){
+            //for (CoordinatePoint cord: cordList.get(index)) {
+                if (cordList.get(index).get(index2).y > ScreenHeight+10) {
+                    cordList.get(index).remove(index2);
+                    index2++;
+                }
+                else{
+                    underScreen = false;
+                    index2++;
+                }
+            }
+            if (cordList.get(index).isEmpty()){
+                cordList.remove(index);
+            }
+            index++;
         }
-//        if ((this.platformRemove != null) || (!this.platformRemove.isEmpty())) {
-//            for (CoordinatePoint cord: this.platformRemove){
-//                cordList.remove(cord);
-//                //System.out.println("def removed");
-//            }
-//        }
     }
 
     private boolean isHeroOnPlatform(MovementComponent hero, CoordinatePoint platform) {
@@ -152,7 +134,6 @@ public class MovementSystem {
                 }
                 cordPlatform.y += 5;
                 counter++;
-                this.newPlatforms = true;
                 int som = 0;
                 float deler = 0;
                 int averageMaxHeight = 0;
@@ -165,21 +146,17 @@ public class MovementSystem {
                 }
                 averageMaxHeight = (int)(som/deler);
                 if ((counter >= generatorDemper) && (averageMaxHeight > ((int)(-ScreenHeight*(5/14.0))))) {
-                    System.out.println("(MS) Call platformsGen");
-                    this.addCords = platform.generatePlatformLocations(false, new CoordinatePoint(workCord.x, workCord.y, movementComponentList.get(1).width, movementComponentList.get(1).height));
-                    System.out.println("(MS) new size tree: "+this.addCords.size());
-                    System.out.println("(MS) full size tree: "+movementComponentList.get(1).cordList.size());
-                    System.out.println("(MS) highest branch size: "+movementComponentList.get(1).cordList.get(movementComponentList.get(1).cordList.size()-1).size());
+                    this.addCords = platform.generatePlatformLocations(false, new CoordinatePoint(workCord.x, workCord.y, movementComponentList.get(1).width, movementComponentList.get(1).height),healthScrore.getScore());
                     counter = 0;
                 }
             }
         }
         if (heroMove.y <= (float) ((5 / 14.0) * ScreenHeight)) {
             heroMove.y += 5;
-            healthScrore.addScore(10);
+            healthScrore.addScore(scoreAdd);
         }
         heroMove.y += 5;
-        healthScrore.addScore(10);
+        healthScrore.addScore(scoreAdd);
     }
 
     private void addNewPlatforms(List<List<CoordinatePoint>> cordList) {
@@ -199,16 +176,8 @@ public class MovementSystem {
         a = (int)Math.round(hoogte/(double)(timeJump/2.0));
         //float gravity = 980;
         //a = (int)(gravity / 2.0f);
-       // System.out.println(-(float)(Math.round((-2*a*1 + a*timeJump)/10.0)));
         fysicsFormula = (int)Math.round(-a*(time - timeJump/2.0))^2 + hoogte;
-        //System.out.println((int)Math.round(-a*(time - timeJump/2.0))^2 + hoogte);
-        this.dy = Math.min(-(float)(Math.round((-2*a*time + a*timeJump)/10.0)),-(float)(Math.round((-2*a*1 + a*timeJump)/10.0)));
-        //System.out.println(-(float)(Math.round((-2*a*time + a*timeJump)/10.0)));
-        //System.out.println(dy);
-        if (time == 0){
-            this.dy -= 0; // omdat ik vind dat die in het begin een te grote versnelling heeft en dus te hoog springt
-                           // na een nieuwe jump
-        }
+        this.dy = Math.min(-(float)(Math.round((-2*a*time + a*timeJump)/10.0)),-(float)(Math.round((-2*a*timeJump + a*timeJump)/10.0)));
     }
     public void setVX(int VX){
         this.dx = VX;
@@ -219,10 +188,9 @@ public class MovementSystem {
 
     public void setDirection(Inputs direction){ //, float[] movementComponent){
         switch (direction){
-            case LEFT  -> {dx = -700;}
-            case RIGHT -> {dx =  700;}
-            //case UP    -> {dx = 0 ; dy = -10;}
-            //case DOWN  -> {dx = 0 ; dy =  10;}
+            case LEFT  -> {dx = -dx_bewegen;}
+            case RIGHT -> {dx =  dx_bewegen;}
+            // dy moet berekent worden in de physics function (parabolische jump)
             default    -> {dx = 0 ; dy =  0;}
         }
     }

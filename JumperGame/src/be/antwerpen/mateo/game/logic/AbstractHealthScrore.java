@@ -21,6 +21,9 @@ public abstract class AbstractHealthScrore {
     public int getHealth(){
         return this.health;
     }
+    public void setHealth(int damage){
+        this.health -= damage;
+    }
     public int getScore(){
         return this.score;
     }

@@ -94,7 +94,7 @@ public class Input extends AbstractInput {
                 case KeyEvent.VK_ENTER:
                     keyInputs.add(Inputs.ENTER);
                 default:
-                    keyInputs.add(Inputs.NOInput);
+                    break;
             }
         }
             // Werken met statemachine die wisselt tussen pressed van bv.: links. Zolang dat die pressed is, hoe je

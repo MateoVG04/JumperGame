@@ -1,6 +1,5 @@
 package be.antwerpen.mateo.game.visualisation;
 
-import javax.swing.*;
 import java.awt.*;
 import java.io.IOException;
 
@@ -14,7 +13,7 @@ public class backgroundMenu implements menuInterfaceStrat{
 //        ImageIcon icon = new ImageIcon("JumperGame/src/be/antwerpen/mateo/game/resources/backgroundGalaxy.jpg");
 //        this.scaleImage = icon.getImage().getScaledInstance(28,28, Image.SCALE_DEFAULT);
 //    }
-    public void execute(){
+    public void execute(int state){
         try {
             grCtx.getFrame().getContentPane().add(new JPanelBackground("JumperGame/src/be/antwerpen/mateo/game/resources/backgroundGalaxy.jpg"),BorderLayout.CENTER);
             grCtx.getFrame().validate();

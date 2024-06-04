@@ -7,7 +7,7 @@ public class Clock {
 
     public Clock(){
         start = 0;
-        FPS = 30;
+        FPS = Config.getDoubleProperty("FIXED_FPS");
     }
 
     public double getFPS(){

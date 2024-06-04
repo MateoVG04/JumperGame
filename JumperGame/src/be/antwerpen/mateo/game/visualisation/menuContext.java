@@ -2,11 +2,13 @@ package be.antwerpen.mateo.game.visualisation;
 
 public class menuContext {
     private menuInterfaceStrat Strat;
-    public menuInterfaceStrat setStrategy(menuInterfaceStrat strategy){
+    private int state=0;
+    public menuInterfaceStrat setStrategy(menuInterfaceStrat strategy,int state){
         this.Strat = strategy;
+        this.state = state;
         return Strat;
     }
     public void executeMenu(){
-        this.Strat.execute();
+        this.Strat.execute(state);
     }
 }

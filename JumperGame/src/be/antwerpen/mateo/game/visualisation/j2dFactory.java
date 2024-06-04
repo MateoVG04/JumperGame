@@ -59,14 +59,14 @@ public class j2dFactory extends AbstractFactory {
     }
 
     @Override
-    public menuInterfaceStrat createMenu(String Strat, AbstractContext gr){
+    public menuInterfaceStrat createMenu(String Strat, AbstractContext gr, int state){
         menuInterfaceStrat menu;
         menuContext context = new menuContext();
         if (Strat == "Menu"){
-            menu = context.setStrategy(new Menu((j2dContext) gr));
+            menu = context.setStrategy(new Menu((j2dContext) gr),state);
         }
         else if(Strat == "backgroundMenu"){
-            menu = context.setStrategy(new backgroundMenu((j2dContext) gr));
+            menu = context.setStrategy(new backgroundMenu((j2dContext) gr),state);
         }
         else{
             menu = null;

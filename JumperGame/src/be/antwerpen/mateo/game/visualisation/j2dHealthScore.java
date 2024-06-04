@@ -6,29 +6,6 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 
 public class j2dHealthScore extends AbstractHealthScrore {
-//    private int health = 3;
-    //private int score = 0;
-//    private j2dContext grCtx;
-//
-//    public j2dHealthScore(int health, int score, j2dContext gr){
-//        super(health,score);
-//        this.health = health;
-//        this.score = score;
-//        this.grCtx = gr;
-//
-//    }
-//    public void draw(){
-//        if (grCtx == null) {
-//            throw new IllegalStateException("grCtx is not initialized");
-//        }
-//        Graphics2D g2d = this.grCtx.getG2d();
-//        int size = this.grCtx.getSize();
-//        g2d.setColor(Color.WHITE);
-//        Font f = new Font("Serif Font",1,18);
-//        g2d.setFont(f);
-//        String score = "Score: "+this.score;
-//        g2d.drawString(score,10,20);
-//    }
     j2dContext grCtx;
     int prevScore = -1; // -1 zodat bij de eerste render met score 0 ook al een buffer wordt aangemaakt
     BufferedImage BufferScore;

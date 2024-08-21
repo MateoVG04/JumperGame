@@ -46,7 +46,6 @@ public class Config {
     static {
         try {
             FileInputStream input = new FileInputStream("C:\\Users\\Mateo\\Geavanceerde programmeertechnieken\\Project - chose name later\\JumperGame\\src\\be\\antwerpen\\mateo\\game\\resources\\config.properties");
-            System.out.println(input);
             if (input == null) {
                 System.out.println("Geen properties file gevonden.");
             } else {

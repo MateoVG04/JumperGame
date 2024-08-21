@@ -126,7 +126,7 @@ abstract public class AbstractStaticPlatform extends AbstractEntity{
                     }
                     else if (randx >= excludedMax-((int)(width/2.0))){
                         outOfBound = true;
-                        randx = random.nextInt(230,695);
+                        randx = random.nextInt(330,595);
                     }
 
                     // 140 is de hoogte dat de hero comfortabel kan springen. Hierdoor zijn alle platformen haalbaar.
@@ -163,25 +163,14 @@ abstract public class AbstractStaticPlatform extends AbstractEntity{
                     if (!collision) {
                         CoordinatePoint cord = new CoordinatePoint(randx, randy, width, height);
                         werkerLijst.add(cord);
-                        //j++;
                         platformsGenerated++;
                     }
                     collision = false;
-    //                            CoordinatePoint cord = new CoordinatePoint(randx, randy, width, height);
-    //                            werkerLijst.add(cord);
-    //                            platformsGenerated++;
-                    //}
-                    //else {
-
-                    //}
                 }
                 j++;
             }
-            //System.out.println(werkerLijst.size());
             children.add(werkerLijst);
-            //werkerLijst.clear();
             i++;
-            //children.add(nodeList);
         }
         platformTree.children = deepCopyListOfLists(children); // maak gebruik van een deepCopy omdat je anders
                                                                // gwn 2 pointers hebben die naar hetzelfde achterliggende

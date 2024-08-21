@@ -5,6 +5,7 @@ public abstract class AbstractFactory {
     public abstract AbstractFactory createStatus();
     public abstract AbstractEntity createEntity(MovementComponent movementComponent, MovementSystem movementSystem, AbstractContext gr);
     public abstract AbstractHero createHero(MovementComponent movementComponent, MovementSystem movementSystem, AbstractContext gr, int width, int height);
+    public abstract AbstractEnemy createEnemy(MovementComponent movementComponent, MovementSystem movementSystem, AbstractContext gr, int width, int height);
     public abstract AbstractInterfaceMenuStrat createMenu(String Strat, AbstractContext gr,int state);
     public abstract AbstractContext createContext(int heroWidt, int heroHeight);
     public abstract AbstractStaticPlatform createStaticPlatform(MovementComponent movementComponent, MovementSystem movementSystem, AbstractContext gr, int width, int height);

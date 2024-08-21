@@ -1,17 +1,26 @@
 package be.antwerpen.mateo.game.logic;
 
+import org.luaj.vm2.Globals;
+import org.luaj.vm2.lib.jse.JsePlatform;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import org.luaj.vm2.LuaValue;
+import org.luaj.vm2.compiler.LuaC;
 
 public class Game {
     private static List<AbstractEntity> instanceGame;
     private static MovementComponent instanceMove;
+    private static MovementComponent instanceMoveEnemy;
     private static MovementSystem instanceMoveSystem;
     private static AbstractHero instanceHero;
+    private static AbstractEnemy instanceEnemy;
     private static AbstractStaticPlatform instanceStaticPlatform;
     private AbstractHero hero;
+    private AbstractEnemy enemy;
     private AbstractStaticPlatform staticPlatform;
     private MovementComponent movementComponent;
+    private MovementComponent movementComponentEnemy;
     private MovementSystem movementSystem;
     private boolean isRunning;
     private boolean isPaused;
@@ -30,17 +39,22 @@ public class Game {
     private AbstractContext grCtx;
     private AbstractMenu menu;
     private static AbstractInterfaceMenuStrat instanceMenu;
+    private static AbstractInterfaceMenuStrat instanceMenuLevels;
     private static AbstractInterfaceMenuStrat instanceBackgroundMenu;
     private static AbstractContext instanceContext;
     private static AbstractHealthScrore instanceHealthScore;
     private int aantalHartjes = Config.getIntProperty("AANTAL_LEVENS");
     private int heroWidth = Config.getIntProperty("HERO_WIDTH");
     private int heroHeight = Config.getIntProperty("HERO_HEIGHT");
+    public int enemyWidth = Config.getIntProperty("ENEMY_WIDTH");
+    public int enemyHeight = Config.getIntProperty("ENEMY_HEIGHT");
     private int platformWidth = Config.getIntProperty("PLATFORM_WIDTH");
     private int platformHeight = Config.getIntProperty("PLATFORM_HEIGHT");
     private boolean enterPressed = false;
+    private boolean enterPressed2 = false;
     private int ScreenWidth;
     private int ScreenHeight;
+    private LuaTranslator luaTranslator;
 
 
     public Game(AbstractFactory f,AbstractInput i,AbstractContext gr, int ScreenWidth, int ScreenHeight){
@@ -50,6 +64,7 @@ public class Game {
         this.instanceInput = this.input;
         this.ScreenWidth = ScreenWidth;
         this.ScreenHeight = ScreenHeight;
+        luaTranslator = new LuaTranslator("/be/antwerpen/mateo/game/resources/EnemyPosition.lua");
     }
 
     private static List<AbstractEntity> getInstanceGame(AbstractEntity ent){
@@ -74,6 +89,12 @@ public class Game {
         }
         return instanceMove;
     }
+    private static MovementComponent getInstanceMoveEnemy(int enemyWidth, int enemyHeight){
+        if (instanceMoveEnemy == null){
+            instanceMoveEnemy = new MovementComponent(500-Math.round(enemyWidth/2.0),800,0,2,null, enemyWidth, enemyHeight);
+        }
+        return instanceMoveEnemy;
+    }
     // static keyword laat de method geaccessed worden zonder een object aan te maken van de class
     private static MovementSystem getInstanceMoveSystem(){
         if (instanceMoveSystem == null){
@@ -95,6 +116,11 @@ public class Game {
         }
         return instanceHero;
     }
+
+    private static AbstractEnemy getInstanceEnemy(MovementComponent movementComponent, MovementSystem movementSystem, AbstractContext grCtx,int width, int height){
+        instanceEnemy = factory.createEnemy(movementComponent,movementSystem,grCtx,width, height);
+        return instanceEnemy;
+    }
     private static AbstractHealthScrore getInstanceHealthScore(int health, int score, AbstractContext gr){
         if (instanceHealthScore == null){
             instanceHealthScore = factory.createHealthScore(health,score,gr);
@@ -112,6 +138,12 @@ public class Game {
             instanceBackgroundMenu = factory.createMenu(Strat, gr,state);
         }
         instanceBackgroundMenu.execute(state);
+    }
+    private static void getInstanceMenuLevels(String Strat, AbstractContext gr, int state){
+        if (instanceMenuLevels == null) {
+            instanceMenuLevels = factory.createMenu(Strat, gr,state);
+        }
+        instanceMenuLevels.execute(state);
     }
     private static void getInstanceMenu(String Strat, AbstractContext gr, int state){
         if (instanceMenu == null) {
@@ -134,16 +166,20 @@ public class Game {
         isPaused = false;
         inStartMenu = true;
         inGame = false;
-        boolean wordtInGame = false;
-        boolean test = false;
+        boolean vorigeLua = false;
+        boolean LuaBool = false;
         boolean isFirstGame = true;
         int stateNummer = 1;
-        int enterNummer = 0;
-
+        int stateNummerLevels = 1;
+        String strat = "Menu";
+        boolean stateNummer4 = false;
+        boolean stateNummerLevel4 = false;
+        int level = 1;
+        boolean restLua = false;
+        boolean heroShoot = false;
         while (isRunning){
             this.grCtx = getInstanceContext(this.heroWidth,this.heroHeight);
             clock.calculateDeltaT(true);
-            String strat = "backgroundMenu";
             input = getInstanceInput(state);
             input.setContext(grCtx);
 //            boolean var = input.inputAvailable();
@@ -155,21 +191,38 @@ public class Game {
 //                if (test){
 //                    direction = Inputs.ENTER;
 //                }
-                if (state == "menu"){
+                if ((state == "menu") && (strat == "Menu")){
                     if (direction == Inputs.DOWN){
                         stateNummer++;
-                        if (stateNummer >= 4){
+                        if (stateNummer > 4){
                             stateNummer = 1;
                         }
                     }
                     else if (direction == Inputs.UP){
                         stateNummer--;
                         if (stateNummer <= 0){
-                            stateNummer = 3;
+                            stateNummer = 4;
                         }
                     }
                     else if (direction == Inputs.ENTER){
                         enterPressed = true;
+                    }
+                }
+                else if ((state == "menu") && (strat == "MenuLevels")){
+                    if (direction == Inputs.DOWN){
+                        stateNummerLevels++;
+                        if (stateNummerLevels > 4){
+                            stateNummerLevels = 1;
+                        }
+                    }
+                    else if (direction == Inputs.UP){
+                        stateNummerLevels--;
+                        if (stateNummerLevels <= 0){
+                            stateNummerLevels = 4;
+                        }
+                    }
+                    else if (direction == Inputs.ENTER){
+                        enterPressed2 = true;
                     }
                 }
                 else {
@@ -177,35 +230,57 @@ public class Game {
                         isPaused = !isPaused;
                     else if (direction == Inputs.ENTER) {
                         enterPressed = true;
-                    } else if (inGame) {
+                    }
+                    else if (direction == Inputs.SPACE) {
+                        if (level == 1) {
+                            heroShoot = true;
+                        }
+                    }
+                    if (direction != Inputs.SPACE) {
                         hero.movementSystem.setDirection(direction);
                     }
+
                 }
             }
             instanceHealthScore = getInstanceHealthScore(aantalHartjes,0,getInstanceContext(heroWidth,heroHeight));
 
             movementComponent = getInstanceMove(this.heroWidth,this.heroHeight);
+            movementComponentEnemy = getInstanceMoveEnemy(enemyWidth,enemyHeight);
             movementSystem = getInstanceMoveSystem();
             hero = getInstanceHero(movementComponent,movementSystem,getInstanceContext(this.heroWidth,this.heroHeight),heroWidth,heroHeight);
             getInstanceGame(hero);
+            if (heroShoot) {
+                hero.shoot();
+            }
             staticPlatform = getInstanceStaticPlatform(movementComponent, movementSystem,getInstanceContext(this.heroWidth, this.heroHeight),this.platformWidth,this.platformHeight);
             getInstanceGame(staticPlatform);
+            restLua = luaTranslator.EnemyPosition(this.movementSystem.getCountAddPlatform());
             List<MovementComponent> movementComponentList = new ArrayList<>();
             movementComponentList.add(hero.movementComponent);
             movementComponentList.add(staticPlatform.getMovementComponent());
 
+            // Lua -> enemy spawnen
+            // lua werkt alleen nog niet genoeg tijd gehad om te kunnen implementeren
+            if (vorigeLua != restLua){
+                LuaBool = true;
+                if ((enemy == null) && (instanceEnemy == null)) {
+                    enemy = getInstanceEnemy(movementComponentEnemy, movementSystem, getInstanceContext(this.heroWidth, this.heroHeight), enemyWidth, enemyHeight);
+                    movementComponentList.add(enemy.getMovementComponent());
+                }
+            }
+            else{
+                LuaBool = false;
+            }
+
             if (!isPaused) {
                 if (inStartMenu){
-                    strat = "Menu";
                     if (isFirstGame) {
-                        getInstanceContext(this.heroWidth, this.heroHeight).setStateGraphics(state);
+                        getInstanceContext(this.heroWidth, this.heroHeight).setStateGraphics(state,level);
+                        enemy = null;
+                        instanceEnemy = null;
                         isFirstGame = false;
                     }
-                    if (enterNummer == 10){
-                        stateNummer = 10;
-                    }
                     getInstanceMenu(strat,getInstanceContext(this.heroWidth,this.heroHeight),stateNummer);
-                    enterNummer = 0;
                     if (enterPressed && (stateNummer == 1)){
                         inStartMenu = false;
                         inGame = true;
@@ -214,19 +289,54 @@ public class Game {
                         }
                         state = "game";
                     }
-                    else if (enterPressed && (stateNummer == 2)){
-
+                    else if (enterPressed && (stateNummer == 4) || stateNummer4){
+                        //enterPressed = false;
+                        stateNummer4 = true;
+                        strat = "MenuLevels";
+                        getInstanceMenuLevels(strat,getInstanceContext(this.heroWidth,this.heroHeight),stateNummerLevels);
+                        if (enterPressed2 && (stateNummerLevels == 1)){
+                            level = 1;
+                            strat = "Menu";
+                            stateNummer4 = false;
+                            isFirstGame = true;
+                        }
+                        else if (enterPressed2 && (stateNummerLevels == 2)){
+                            level = 2;
+                            strat = "Menu";
+                            stateNummer4 = false;
+                            isFirstGame = true;
+                        }
+                        else if (enterPressed2 && (stateNummerLevels == 4)){
+                            strat = "Menu";
+                            stateNummer4 = false;
+                        }
                     }
                 }
                 else if(inGame){
                     if (count  != 1) {
-                        getInstanceContext(this.heroWidth, this.heroHeight).setStateGraphics(state);
+                        if (level == 1) {
+                            getInstanceContext(this.heroWidth, this.heroHeight).setStateGraphics(state,level);
+                        }
+                        else if (level == 2){
+                            getInstanceContext(this.heroWidth, this.heroHeight).setStateGraphics(state,level);
+                        }
                         count = 1;
                     }
-                    this.heroDied = this.movementSystem.update(movementComponentList,this.deltaT, this.clock, staticPlatform, instanceHealthScore,this.ScreenWidth,this.ScreenHeight);
-                    // zet vx terug op 0, omdat als je een key hebt los gelaten dan moet je hero stoppen met opzij te bewegen
+
+                    this.heroDied = this.movementSystem.update(movementComponentList, this.deltaT, this.clock, staticPlatform, instanceHealthScore, this.ScreenWidth, this.ScreenHeight, LuaBool, enemy);
+                                        // zet vx terug op 0, omdat als je een key hebt los gelaten dan moet je hero stoppen met opzij te bewegen
+                    int i = 0;
+                    if (enemy != null) {
+                        if (enemy.movementComponent.y >= 1000) {
+                            enemy = null;
+                            instanceEnemy = null;
+                        }
+                    }
                     this.movementSystem.setVX(0);
                     staticPlatform.draw();
+                    if (this.enemy != null) {
+                        enemy.draw();
+                    }
                     hero.draw();
                     instanceHealthScore.draw();
                     if (this.heroDied){
@@ -242,19 +352,22 @@ public class Game {
                         instanceMoveSystem = null;
                         hero = null;
                         instanceHero = null;
+                        enemy = null;
+                        instanceEnemy = null;
                         instanceGame = null;
                         staticPlatform = null;
                         instanceStaticPlatform = null;
                         movementComponent = null;
-                        //test = true;
-                        //instanceHealthScore.
                     }
-                    //enterPressed = false;
                 }
                 else {
                     hero.draw();
                 }
                 enterPressed = false;
+                enterPressed2 = false;
+                heroShoot = false;
+                vorigeLua = restLua;
+                restLua = false;
                 grCtx.render();
             }
             this.deltaT = clock.calculateDeltaT(false);

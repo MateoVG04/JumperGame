@@ -10,6 +10,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 
+
 public class j2dContext extends AbstractContext {
     public int ScreenWidth;
     public int ScreenHeight;
@@ -18,13 +19,15 @@ public class j2dContext extends AbstractContext {
     private JPanel panel;
     private BufferedImage g2dimage;     // used for drawing
     private Graphics2D g2d;             // always draw in this one
-    private JPanelBackground backgroundImage;
+    //private JPanelBackground backgroundImage;
     private int size;                   // cel size
     public BufferedImage backgroundImg;
     public BufferedImage backSmog;
     public BufferedImage backSmog2;
     public BufferedImage heroSprite;
+    public BufferedImage enemySprite;
     public BufferedImage healthSprite;
+    public BufferedImage bulletSprite;
     private int heroWidth;
     private int heroHeight;
     private int healthWidth;
@@ -93,52 +96,74 @@ public class j2dContext extends AbstractContext {
         panel.repaint();
     }
 
-    public BufferedImage resizeImage(String entity,BufferedImage originalImage, int targetWidth, int targetHeight){
+//    public BufferedImage resizeImage(String entity,BufferedImage originalImage, int targetWidth, int targetHeight){
+//        Image resultingImage = null;
+//        if (entity == "hero"){
+//            resultingImage = originalImage.getScaledInstance(targetWidth, targetHeight, Image.SCALE_DEFAULT); // + 300, +100
+//        }
+//        else if (entity == "enemy") {
+//            resultingImage = originalImage.getScaledInstance(targetWidth, targetHeight, Image.SCALE_DEFAULT); // + 300, +100
+//        }
+//        else if (entity == "background") {
+//            resultingImage = originalImage.getScaledInstance(targetWidth, targetHeight, Image.SCALE_DEFAULT); // + 300, +100
+//        }
+//        else if (entity == "health"){
+//            resultingImage = originalImage.getScaledInstance(targetWidth,targetHeight,Image.SCALE_DEFAULT);
+//        }
+//        else if (entity == "Smog"){
+//            resultingImage = originalImage.getScaledInstance(targetWidth,targetHeight,Image.SCALE_DEFAULT);
+//        }
+//        else if (entity == "Smog2"){
+//            resultingImage = originalImage.getScaledInstance(targetWidth,targetHeight,Image.SCALE_DEFAULT);
+//        }
+//        BufferedImage outputImage = new BufferedImage(targetWidth, targetHeight, BufferedImage.TYPE_4BYTE_ABGR_PRE);
+//        if (entity == "hero") {
+//            outputImage.getGraphics().drawImage(resultingImage, 0, 0, null); // -100, -100
+//        } else if (entity == "background") {
+//            outputImage.getGraphics().drawImage(resultingImage, 0, 0, null); // -100, -100
+//        } else if (entity == "health") {
+//            outputImage.getGraphics().drawImage(resultingImage, 0, 0, null);
+//        } else if (entity == "Smog") {
+//            outputImage.getGraphics().drawImage(resultingImage, 0, 0, null);
+//        } else if (entity == "Smog2") {
+//            outputImage.getGraphics().drawImage(resultingImage, 0, 0, null);
+//        }
+//        return outputImage;
+//    }
+
+    public BufferedImage resizeImage(BufferedImage originalImage, int targetWidth, int targetHeight){
         Image resultingImage = null;
-        if (entity == "hero"){
-            resultingImage = originalImage.getScaledInstance(targetWidth, targetHeight, Image.SCALE_DEFAULT); // + 300, +100
-        }
-        else if (entity == "background") {
-            resultingImage = originalImage.getScaledInstance(targetWidth, targetHeight, Image.SCALE_DEFAULT); // + 300, +100
-        }
-        else if (entity == "health"){
-            resultingImage = originalImage.getScaledInstance(targetWidth,targetHeight,Image.SCALE_DEFAULT);
-        }
-        else if (entity == "Smog"){
-            resultingImage = originalImage.getScaledInstance(targetWidth,targetHeight,Image.SCALE_DEFAULT);
-        }
-        else if (entity == "Smog2"){
-            resultingImage = originalImage.getScaledInstance(targetWidth,targetHeight,Image.SCALE_DEFAULT);
-        }
+        resultingImage = originalImage.getScaledInstance(targetWidth,targetHeight,Image.SCALE_DEFAULT);
         BufferedImage outputImage = new BufferedImage(targetWidth, targetHeight, BufferedImage.TYPE_4BYTE_ABGR_PRE);
-        if (entity == "hero") {
-            outputImage.getGraphics().drawImage(resultingImage, 0, 0, null); // -100, -100
-        } else if (entity == "background") {
-            outputImage.getGraphics().drawImage(resultingImage, 0, 0, null); // -100, -100
-        } else if (entity == "health") {
-            outputImage.getGraphics().drawImage(resultingImage, 0, 0, null);
-        } else if (entity == "Smog") {
-            outputImage.getGraphics().drawImage(resultingImage, 0, 0, null);
-        } else if (entity == "Smog2") {
-            outputImage.getGraphics().drawImage(resultingImage, 0, 0, null);
-        }
+        outputImage.getGraphics().drawImage(resultingImage, 0, 0, null);
         return outputImage;
     }
 
-    private void loadImages() {
+    private void loadImages(int level) {
         backgroundImg = null;
         try {
-
-            // Voor goeie images te maken gebruik Chat GPT
-            // Voor de achtergrond van de image te verwijderen, gebruik https://www.remove.bg/upload
-            backgroundImg = ImageIO.read(new File("JumperGame/src/be/antwerpen/mateo/game/resources/BackgrndGalaxy.png"));
-            //C:\Users\Mateo\Geavanceerde programmeertechnieken\Project - chose name later\JumperGame\src\be\antwerpen\mateo\game\resources\backgroundGalaxy.jpg
-            //      src/be/antwerpen/mateo/game/resources/backgroundGalaxy.jpg
-            heroSprite = ImageIO.read(new File("JumperGame/src/be/antwerpen/mateo/game/resources/Hero_Astronaut3.png"));
-            healthSprite = ImageIO.read(new File("JumperGame/src/be/antwerpen/mateo/game/resources/Health_hartje.png"));
-            backSmog = ImageIO.read(new File("JumperGame/src/be/antwerpen/mateo/game/resources/Cosmic_Fog_Right_blur.png"));
-            backSmog2 = ImageIO.read(new File("JumperGame/src/be/antwerpen/mateo/game/resources/Cosmic_Fog_Left_blur.png"));
-            //heroSprite = ImageIO.read(new File("JumperGame/src/be/antwerpen/mateo/game/resources/Hero_Astronaut_transparent.png"));
+            if (level == 1) {
+                // Voor goeie images te maken gebruik Chat GPT
+                // Voor de achtergrond van de image te verwijderen, gebruik https://www.remove.bg/upload
+                backgroundImg = ImageIO.read(new File("JumperGame/src/be/antwerpen/mateo/game/resources/BackgrndGalaxy.png"));
+                heroSprite = ImageIO.read(new File("JumperGame/src/be/antwerpen/mateo/game/resources/Hero_Astronaut3.png"));
+                healthSprite = ImageIO.read(new File("JumperGame/src/be/antwerpen/mateo/game/resources/Health_hartje.png"));
+                enemySprite = ImageIO.read(new File("JumperGame/src/be/antwerpen/mateo/game/resources/SpaceEnemy2.png"));
+                backSmog = ImageIO.read(new File("JumperGame/src/be/antwerpen/mateo/game/resources/Cosmic_Fog_Right_blur.png"));
+                backSmog2 = ImageIO.read(new File("JumperGame/src/be/antwerpen/mateo/game/resources/Cosmic_Fog_Left_blur.png"));
+                bulletSprite = ImageIO.read(new File("JumperGame/src/be/antwerpen/mateo/game/resources/ShootBullet1.png"));
+            }
+            else if (level == 2){
+                backgroundImg = ImageIO.read(new File("JumperGame/src/be/antwerpen/mateo/game/resources/BackgrndLavaCave.png"));
+                //C:\Users\Mateo\Geavanceerde programmeertechnieken\Project - chose name later\JumperGame\src\be\antwerpen\mateo\game\resources\backgroundGalaxy.jpg
+                //      src/be/antwerpen/mateo/game/resources/backgroundGalaxy.jpg
+                heroSprite = ImageIO.read(new File("JumperGame/src/be/antwerpen/mateo/game/resources/ridder.png"));
+                enemySprite = ImageIO.read(new File("JumperGame/src/be/antwerpen/mateo/game/resources/LavaEnemy2.png"));
+                healthSprite = ImageIO.read(new File("JumperGame/src/be/antwerpen/mateo/game/resources/Health_hartje.png"));
+                backSmog = ImageIO.read(new File("JumperGame/src/be/antwerpen/mateo/game/resources/Lava_Wall_Right.png"));
+                backSmog2 = ImageIO.read(new File("JumperGame/src/be/antwerpen/mateo/game/resources/Lava_Wall_Left.png"));
+                bulletSprite = null;
+            }
         } catch (IOException e) {
             System.out.println("Unable to load .png!");
         }
@@ -172,7 +197,6 @@ public class j2dContext extends AbstractContext {
         size = Math.min(ScreenWidth / GameCellsX, ScreenHeight / GameCellsY);
         frame.setLocation(0, 0);
         frame.setSize(ScreenWidth, ScreenHeight);
-        loadImages();
         g2dimage = new BufferedImage(frame.getWidth(), frame.getHeight(), BufferedImage.TYPE_4BYTE_ABGR_PRE);
         g2d = g2dimage.createGraphics();
         g2d.setBackground(new Color(255, 255, 255));
@@ -181,17 +205,20 @@ public class j2dContext extends AbstractContext {
 //            g2d.clearRect(0, 0, frame.getWidth(), frame.getHeight());
     }
 
-    public void setStateGraphics(String state){
+    public void setStateGraphics(String state, int level){
         this.state = state;
         count=1;
         if (count == 1) {
             if (state == "game") {
                 try {
-                    backgroundImg = resizeImage("background", backgroundImg, frame.getWidth()+100, frame.getHeight()+100);
-                    backSmog = resizeImage("Smog", backSmog, (int) (Math.round(frame.getWidth() * (1 / 5.0))), frame.getHeight());
-                    backSmog2 = resizeImage("Smog2", backSmog2, (int) (Math.round(frame.getWidth() * (1 / 5.0))), frame.getHeight());
-                    heroSprite = resizeImage("hero", heroSprite, (int) Math.round((heroWidth / 1000.0) * ScreenWidth), (int) Math.round((heroHeight / 1000.0) * ScreenHeight));
-                    healthSprite = resizeImage("health", healthSprite, this.healthWidth, this.healthHeight);
+                    loadImages(level);
+                    backgroundImg = resizeImage(backgroundImg, frame.getWidth()+100, frame.getHeight()+100);
+                    backSmog = resizeImage(backSmog, (int) (Math.round(frame.getWidth() * (1 / 5.0))), frame.getHeight());
+                    backSmog2 = resizeImage(backSmog2, (int) (Math.round(frame.getWidth() * (1 / 5.0))), frame.getHeight());
+                    heroSprite = resizeImage(heroSprite, (int) Math.round((heroWidth / 1000.0) * ScreenWidth), (int) Math.round((heroHeight / 1000.0) * ScreenHeight));
+                    healthSprite = resizeImage(healthSprite, this.healthWidth, this.healthHeight);
+                    enemySprite = resizeImage(enemySprite, (int) Math.round((Config.getIntProperty("ENEMY_WIDTH") / 1000.0) * ScreenWidth), (int) Math.round((Config.getIntProperty("ENEMY_WIDTH") / 1000.0) * ScreenHeight));
+                    bulletSprite = resizeImage(bulletSprite, (int) Math.round((Config.getIntProperty("BULLET_WIDTH") / 1000.0) * ScreenWidth),(int) Math.round((Config.getIntProperty("BULLET_HEIGHT") / 1000.0) * ScreenHeight));
                 } catch (Exception e) {
                     System.out.println(e.getStackTrace());
                 }

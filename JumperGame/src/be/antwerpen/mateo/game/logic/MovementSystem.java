@@ -21,8 +21,15 @@ public class MovementSystem {
     private int ScreenHeight;
     private int scoreAdd = Config.getIntProperty("SCORE_ADD");
     private int aantalLevens = Config.getIntProperty("AANTAL_LEVENS");
+    private int bulletWidth = Config.getIntProperty("BULLET_WIDTH");
+    private int bulletHeight = Config.getIntProperty("BULLET_HEIGHT");
+    private int bulletSpeed = Config.getIntProperty("BULLET_SPEED");
+    private int countAddPlatform = 0;
+    private boolean invincible = false;
+    private float invincibleTime = 0;
 
-    public boolean update(List<MovementComponent> movementComponentList,long deltaT ,Clock clock, AbstractStaticPlatform platform, AbstractHealthScrore healthScore, int ScreenWidth, int ScreenHeight){
+
+    public boolean update(List<MovementComponent> movementComponentList,long deltaT ,Clock clock, AbstractStaticPlatform platform, AbstractHealthScrore healthScore, int ScreenWidth, int ScreenHeight, boolean restLua, AbstractEnemy enemy){
         this.ScreenWidth = ScreenWidth;
         this.ScreenHeight = ScreenHeight;
         removePlatformUnderScreen(movementComponentList.get(1).cordList,ScreenHeight);
@@ -42,7 +49,22 @@ public class MovementSystem {
         // als de hero boven een bepaald punt van het scherm komt, moeten alle platformen en de hero zelf ook naar
         // beneden verschoven worden
         if (heroMove.y <= (float)((8/14.0)*1000)){
-            updatePlatformPosition(movementComponentList,ScreenHeight,platform,healthScore);
+            updatePlatformPosition(movementComponentList,ScreenHeight,platform,healthScore,enemy);
+        }
+
+        // dit was de code die ik wilde implementeren om een enemy een positiee op een platform te geven
+        if (restLua){
+            CoordinatePoint co;
+            List<CoordinatePoint> list = movementComponentList.get(1).cordList.get(movementComponentList.get(1).cordList.size()-1);
+            if (!list.isEmpty()) {
+                co = list.get(list.size()-1);
+            }
+            else {
+                co = null;
+            }
+            countAddPlatform = 1;
+            enemy.movementComponent.x = (co.x+ ((int)(co.getWidth()/2.0)-(int)(enemy.movementComponent.width/2.0)));
+            enemy.movementComponent.y = (co.y - (enemy.movementComponent.height));
         }
 
         // check voor elk platform of de hero hier op staat en dus moet gaan jumpen
@@ -64,6 +86,7 @@ public class MovementSystem {
         addNewPlatforms(movementComponentList.get(1).cordList);
         if (!firstJump) {
             this.time += timeOfFrame;
+            this.invincibleTime += timeOfFrame;
         }
         heroJumpFysics(this.time);
         this.addCords.clear();
@@ -74,11 +97,65 @@ public class MovementSystem {
         if (movementComponentList.get(0).x > (int) ((4 / 5.0) * 1000)-10){ // van rechts naar links teleporten
             movementComponentList.get(0).x = (int) ((1 / 5.0) * 1000) + 10;
         }
+
+        /*
+        * bullet update section. Alle bullets die geschoten zijn moeten recht naar boven vliegen.
+        * en als de bullets boven het scherm komt, dan moet die verwijderd worden.
+         */
+        int it = 0;
+
+        while ((!movementComponentList.get(0).bullets.isEmpty()) && (it < movementComponentList.get(0).bullets.size())){
+            CoordinatePoint bullet = movementComponentList.get(0).bullets.get(it);
+            bullet.y -= bulletSpeed;
+            if ((bullet.y + bulletHeight)<0) {
+                movementComponentList.get(0).bullets.remove(bullet);
+            }
+            if (enemy != null) {
+                if (enemy.movementComponent.x < bullet.x + bulletWidth &&
+                    enemy.movementComponent.x + enemy.movementComponent.width > bullet.x &&
+                    enemy.movementComponent.y + enemy.movementComponent.height >= bullet.y &&
+                    enemy.movementComponent.y + enemy.movementComponent.height <= bullet.y + bulletHeight) {
+
+                    enemy.movementComponent.y = ScreenHeight + 100;
+                    healthScore.addScore(Config.getIntProperty("ENEMY_BONUS"));
+                }
+            }
+            it++;
+        }
+
         // als de hero van het scherm gaat/valt, moet je hero dood gaan.
+        if (enemy != null){
+            if (heroMove.x < enemy.movementComponent.x + enemy.movementComponent.width &&
+                heroMove.x + heroMove.width > enemy.movementComponent.x &&
+                heroMove.y + heroMove.height >= enemy.movementComponent.y &&
+                heroMove.y + heroMove.height <= enemy.movementComponent.y + enemy.movementComponent.height &&
+                invincible != true){
+                healthScore.setHealth(1);
+                invincible = true;
+                invincibleTime = 0;
+
+            }
+        }
+        if (invincibleTime >= 5){
+            invincible = false;
+            invincibleTime = 0;
+        }
         if ((movementComponentList.get(0).y >= 1000) || (healthScore.getHealth() <= 0)){
             heroDied = true;
+            invincible = false;
+            invincibleTime = 0;
         }
+//        int i = 0;
+//        if(!enemyList.isEmpty()) {
+//            while ((healthScore.getHealth() <= 0) || ((!enemyList.isEmpty())&& (enemyList.get(i).movementComponent.y >= 1000) )) {
+//                enemyList.remove(enemyList.indexOf(enemyList.get(i)));
+//            }
+//        }
         return this.heroDied;
+    }
+
+    public int getCountAddPlatform(){
+        return this.countAddPlatform;
     }
 
     private void removePlatformUnderScreen(List<List<CoordinatePoint>> cordList, int ScreenHeight){
@@ -123,13 +200,15 @@ public class MovementSystem {
         }
     }
 
-    private void updatePlatformPosition(List<MovementComponent> movementComponentList, int ScreenHeight, AbstractStaticPlatform platform, AbstractHealthScrore healthScrore) {
+private void updatePlatformPosition(List<MovementComponent> movementComponentList, int ScreenHeight, AbstractStaticPlatform platform, AbstractHealthScrore healthScrore,AbstractEnemy enemy) {
         int generatorDemper = 75;
+        boolean updatePlatform = false;
         MovementComponent heroMove = movementComponentList.get(0);
         for (int i = 0; i< movementComponentList.get(1).cordList.size(); i++) {
             for (CoordinatePoint cordPlatform : movementComponentList.get(1).cordList.get(i)) {
                 if (heroMove.y <= (float) ((5 / 14.0) * ScreenHeight)) {
                     cordPlatform.y += 5;
+
                     generatorDemper = 100;
                 }
                 cordPlatform.y += 5;
@@ -148,15 +227,23 @@ public class MovementSystem {
                 if ((counter >= generatorDemper) && (averageMaxHeight > ((int)(-ScreenHeight*(5/14.0))))) {
                     this.addCords = platform.generatePlatformLocations(false, new CoordinatePoint(workCord.x, workCord.y, movementComponentList.get(1).width, movementComponentList.get(1).height),healthScrore.getScore());
                     counter = 0;
+                    countAddPlatform++;
+
                 }
             }
         }
         if (heroMove.y <= (float) ((5 / 14.0) * ScreenHeight)) {
             heroMove.y += 5;
             healthScrore.addScore(scoreAdd);
+            if (enemy != null) {
+                enemy.movementComponent.y += 5;
+            }
         }
         heroMove.y += 5;
         healthScrore.addScore(scoreAdd);
+        if (enemy != null) {
+            enemy.movementComponent.y += 5;
+        }
     }
 
     private void addNewPlatforms(List<List<CoordinatePoint>> cordList) {
@@ -191,6 +278,7 @@ public class MovementSystem {
             case LEFT  -> {dx = -dx_bewegen;}
             case RIGHT -> {dx =  dx_bewegen;}
             // dy moet berekent worden in de physics function (parabolische jump)
+            case SPACE -> {dx = dx;}
             default    -> {dx = 0 ; dy =  0;}
         }
     }

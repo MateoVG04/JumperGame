@@ -1,5 +1,6 @@
 package be.antwerpen.mateo.game.visualisation;
 import be.antwerpen.mateo.game.logic.*;
+import org.luaj.vm2.ast.Str;
 
 
 public class j2dFactory extends AbstractFactory {
@@ -42,6 +43,12 @@ public class j2dFactory extends AbstractFactory {
     }
 
     @Override
+    public AbstractEnemy createEnemy(MovementComponent movementComponent,MovementSystem movementSystem, AbstractContext gr, int width, int height) {
+        j2dEnemy enemy = new j2dEnemy(movementComponent, movementSystem,(j2dContext) gr, width, height);
+        return (AbstractEnemy) enemy;
+    }
+
+    @Override
     public AbstractStaticPlatform createStaticPlatform(MovementComponent movementComponent, MovementSystem movementSystem, AbstractContext gr, int width, int height){
         j2dStaticPlatform staticPlatform = new j2dStaticPlatform(movementComponent, movementSystem, (j2dContext) gr, width, height);
         return (AbstractStaticPlatform) staticPlatform;
@@ -67,6 +74,9 @@ public class j2dFactory extends AbstractFactory {
         }
         else if(Strat == "backgroundMenu"){
             menu = context.setStrategy(new backgroundMenu((j2dContext) gr),state);
+        }
+        else if (Strat == "MenuLevels"){
+            menu = context.setStrategy(new MenuLevels((j2dContext) gr),state);
         }
         else{
             menu = null;

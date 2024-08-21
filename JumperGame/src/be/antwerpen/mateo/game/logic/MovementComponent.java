@@ -1,5 +1,6 @@
 package be.antwerpen.mateo.game.logic;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class MovementComponent {
@@ -7,6 +8,7 @@ public class MovementComponent {
     public float y = 875;
     public int width;
     public int height;
+    public List<CoordinatePoint> bullets;
     public float vx, vy; // richting & snelheid
     public List<List<CoordinatePoint>> cordList;
     public MovementComponent(float x,float y,float vx,float vy,List<List<CoordinatePoint>> cordList, int width, int height){
@@ -17,5 +19,6 @@ public class MovementComponent {
       this.cordList = cordList;
       this.width = width;
       this.height = height;
+      this.bullets = new ArrayList<>();
     }
 }
